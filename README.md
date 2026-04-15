@@ -2,7 +2,7 @@
 
 GCN_basic.py 对应标准模型
 
-GCN_res.py 对应残差连接模型
+GCN_res_n.py 对应n层的残差连接模型
 
 版本:
 

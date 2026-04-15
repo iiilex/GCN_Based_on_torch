@@ -42,18 +42,20 @@ adj = torch.sparse_coo_tensor(edge_index, edge_weight, (num_nodes, num_nodes))
 
 #定义一个GCN层
 class GCN_layer(nn.Module):
-    def __init__(self, in_feature, out_feature, is_dropout, is_relu): # 初始化
+    def __init__(self, in_feature, out_feature, is_dropout, is_relu, has_res = True): # 初始化
         super().__init__()
         self.weight = nn.Parameter(torch.zeros(in_feature, out_feature))
         self.dropout = nn.Dropout(0.5) if is_dropout else nn.Identity()
         self.is_relu = is_relu
         nn.init.xavier_uniform_(self.weight)
+        self.input_proj = nn.Linear(in_features=in_feature, out_features=out_feature) if has_res else None
         
 
     def forward(self, x, adj):
         y = adj @ x @ self.weight
         y = self.dropout(y)
-        return F.relu(y) if self.is_relu else y
+        output = F.relu(y) if self.is_relu else y 
+        return output + self.input_proj(x) if self.input_proj else output
 
 
 # 定义整个GCN模型
@@ -61,12 +63,16 @@ class GCN_layer(nn.Module):
 class GCN(nn.Module):
     def __init__(self, in_feature, hidden_feature, out_feature):
         super().__init__()
-        self.layer1 = GCN_layer(in_feature=in_feature , out_feature=hidden_feature, is_dropout=True,is_relu=True)
-        self.layer2 = GCN_layer(in_feature=hidden_feature, out_feature=out_feature, is_dropout=False, is_relu=False)
+        self.layer1 = GCN_layer(in_feature=in_feature , out_feature=512, is_dropout=True,is_relu=True)
+        self.layer2 = GCN_layer(in_feature=512 , out_feature=64, is_dropout=True,is_relu=True)
+        self.layer3 = GCN_layer(in_feature=64 , out_feature=hidden_feature, is_dropout=True,is_relu=True)
+        self.layer4 = GCN_layer(in_feature=hidden_feature, out_feature=out_feature, is_dropout=False, is_relu=False, has_res = False)
 
     def forward(self, x, adj): # 前向传播
         x = self.layer1(x, adj)
         x = self.layer2(x, adj)
+        x = self.layer3(x, adj)
+        x = self.layer4(x, adj)
         return x
     
     def predict(self, x, adj): # 预测
@@ -85,15 +91,15 @@ class GCN(nn.Module):
 # 开始训练 
 model = GCN(in_feature=num_features, hidden_feature=16, out_feature=num_classes)
 model.to(device)
-optimizer = optim.Adam(model.parameters(), lr = 0.01)
-epochs = 200
+optimizer = optim.Adam(model.parameters(), lr = 0.0003)
+epochs = 500
 
 # 绘图用
 acc_history = []
 loss_history = []
 
 # 早停机制
-patience = 30
+patience = 50
 best_val_acc = 0
 cnt = 0
 best_model_state = None
@@ -109,6 +115,7 @@ for epoch in range(epochs):
     optimizer.step()
 
     model.eval()
+
     acc = model.accuracy_fn(logits, y, val_mask)
     acc_history.append(acc)
     loss_history.append(loss.item())
@@ -127,9 +134,9 @@ for epoch in range(epochs):
         cnt += 1
 
     if(epoch < 20):
-        print(f"Epoch {epoch+1} | Loss: {loss.item():.4f} | Val_acc: {acc:.4f}")
+        print(f"Epoch {epoch+1} | Loss: {loss.item():.4f} | Acc: {acc:.4f}")
     elif (epoch + 1) % 5 == 0:
-        print(f"Epoch {epoch+1} | Loss: {loss.item():.4f} | Val_acc: {acc:.4f}")
+        print(f"Epoch {epoch+1} | Loss: {loss.item():.4f} | Acc: {acc:.4f}")
 
 model.load_state_dict(best_model_state)
 model.eval()

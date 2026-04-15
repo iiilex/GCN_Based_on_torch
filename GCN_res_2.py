@@ -42,18 +42,20 @@ adj = torch.sparse_coo_tensor(edge_index, edge_weight, (num_nodes, num_nodes))
 
 #定义一个GCN层
 class GCN_layer(nn.Module):
-    def __init__(self, in_feature, out_feature, is_dropout, is_relu): # 初始化
+    def __init__(self, in_feature, out_feature, is_dropout, is_relu, has_res = True): # 初始化
         super().__init__()
         self.weight = nn.Parameter(torch.zeros(in_feature, out_feature))
         self.dropout = nn.Dropout(0.5) if is_dropout else nn.Identity()
         self.is_relu = is_relu
         nn.init.xavier_uniform_(self.weight)
+        self.input_proj = nn.Linear(in_features=in_feature, out_features=out_feature) if has_res else None
         
 
     def forward(self, x, adj):
         y = adj @ x @ self.weight
         y = self.dropout(y)
-        return F.relu(y) if self.is_relu else y
+        output = F.relu(y) if self.is_relu else y 
+        return output + self.input_proj(x) if self.input_proj else output
 
 
 # 定义整个GCN模型
@@ -62,7 +64,7 @@ class GCN(nn.Module):
     def __init__(self, in_feature, hidden_feature, out_feature):
         super().__init__()
         self.layer1 = GCN_layer(in_feature=in_feature , out_feature=hidden_feature, is_dropout=True,is_relu=True)
-        self.layer2 = GCN_layer(in_feature=hidden_feature, out_feature=out_feature, is_dropout=False, is_relu=False)
+        self.layer2 = GCN_layer(in_feature=hidden_feature, out_feature=out_feature, is_dropout=False, is_relu=False, has_res = False)
 
     def forward(self, x, adj): # 前向传播
         x = self.layer1(x, adj)
@@ -85,8 +87,8 @@ class GCN(nn.Module):
 # 开始训练 
 model = GCN(in_feature=num_features, hidden_feature=16, out_feature=num_classes)
 model.to(device)
-optimizer = optim.Adam(model.parameters(), lr = 0.01)
-epochs = 200
+optimizer = optim.Adam(model.parameters(), lr = 0.0005)
+epochs = 500
 
 # 绘图用
 acc_history = []
@@ -127,9 +129,9 @@ for epoch in range(epochs):
         cnt += 1
 
     if(epoch < 20):
-        print(f"Epoch {epoch+1} | Loss: {loss.item():.4f} | Val_acc: {acc:.4f}")
+        print(f"Epoch {epoch+1} | Loss: {loss.item():.4f} | Acc: {acc:.4f}")
     elif (epoch + 1) % 5 == 0:
-        print(f"Epoch {epoch+1} | Loss: {loss.item():.4f} | Val_acc: {acc:.4f}")
+        print(f"Epoch {epoch+1} | Loss: {loss.item():.4f} | Acc: {acc:.4f}")
 
 model.load_state_dict(best_model_state)
 model.eval()
@@ -137,6 +139,7 @@ with torch.no_grad():
     logits = model(x, adj)
     test_acc = model.accuracy_fn(logits, y, test_mask)
     print(f"Best_epoch = {best_epoch} | Final_Acc = {test_acc:.4f}")
+
 
 idx = [i for i in range(1,real_epochs+1)]
 
