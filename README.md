@@ -1,8 +1,12 @@
 基于论文 Semi-Supervised Classification with Graph Convolutional Networks 进行的复现实验。
 
-GCN_basic.py 对应标准模型
+GCN_basic.py 2层标准模型
 
-GCN_res_n.py 对应n层的残差连接模型
+GCN_basic_6.py 6层标准模型
+
+GCN_res.py 2层残差连接模型
+
+GCN_res_6.py 6层残差连接模型
 
 版本:
 

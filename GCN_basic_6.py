@@ -26,9 +26,7 @@ num_classes = dataset.num_classes
 edge_index = data.edge_index.to(device)
 idx = torch.arange(end = num_nodes, dtype = torch.long, device = device)
 self_index = torch.stack([idx, idx], dim = 0)
-print(self_index.shape)
 edge_index = torch.cat([edge_index, self_index], dim = 1)
-print(edge_index.shape)
 
 # 计算 D^{-1/2}
 u, v = edge_index
@@ -42,20 +40,17 @@ adj = torch.sparse_coo_tensor(edge_index, edge_weight, (num_nodes, num_nodes))
 
 #定义一个GCN层
 class GCN_layer(nn.Module):
-    def __init__(self, in_feature, out_feature, is_dropout, is_relu, has_res = True): # 初始化
+    def __init__(self, in_feature, out_feature, is_dropout, is_relu): # 初始化
         super().__init__()
         self.weight = nn.Parameter(torch.zeros(in_feature, out_feature))
         self.dropout = nn.Dropout(0.5) if is_dropout else nn.Identity()
         self.is_relu = is_relu
         nn.init.xavier_uniform_(self.weight)
-        self.input_proj = nn.Linear(in_features=in_feature, out_features=out_feature) if has_res else None
         
-
     def forward(self, x, adj):
         y = adj @ x @ self.weight
         y = self.dropout(y)
-        output = F.relu(y) if self.is_relu else y 
-        return output + self.input_proj(x) if self.input_proj else output
+        return F.relu(y) if self.is_relu else y
 
 
 # 定义整个GCN模型
@@ -64,11 +59,20 @@ class GCN(nn.Module):
     def __init__(self, in_feature, hidden_feature, out_feature):
         super().__init__()
         self.layer1 = GCN_layer(in_feature=in_feature , out_feature=hidden_feature, is_dropout=True,is_relu=True)
-        self.layer2 = GCN_layer(in_feature=hidden_feature, out_feature=out_feature, is_dropout=False, is_relu=False, has_res = False)
+        self.layer2 = GCN_layer(in_feature=hidden_feature , out_feature=hidden_feature, is_dropout=True,is_relu=True)
+        self.layer3 = GCN_layer(in_feature=hidden_feature , out_feature=hidden_feature, is_dropout=True,is_relu=True)
+        self.layer4 = GCN_layer(in_feature=hidden_feature , out_feature=hidden_feature, is_dropout=True,is_relu=True)
+        self.layer5 = GCN_layer(in_feature=hidden_feature , out_feature=hidden_feature, is_dropout=True,is_relu=True)
+        self.layer6 = GCN_layer(in_feature=hidden_feature, out_feature=out_feature, is_dropout=False, is_relu=False)
 
     def forward(self, x, adj): # 前向传播
         x = self.layer1(x, adj)
         x = self.layer2(x, adj)
+        x = self.layer3(x, adj)
+        x = self.layer4(x, adj)
+        x = self.layer5(x, adj)
+        x = self.layer6(x, adj)
+
         return x
     
     def predict(self, x, adj): # 预测
@@ -87,12 +91,13 @@ class GCN(nn.Module):
 # 开始训练 
 model = GCN(in_feature=num_features, hidden_feature=16, out_feature=num_classes)
 model.to(device)
-optimizer = optim.Adam(model.parameters(), lr = 0.0005)
-epochs = 500
+optimizer = optim.Adam(model.parameters(), lr = 0.01)
+epochs = 300
 
 # 绘图用
 acc_history = []
-loss_history = []
+train_loss_history = []
+val_loss_history = []
 
 # 早停机制
 patience = 30
@@ -113,7 +118,11 @@ for epoch in range(epochs):
     model.eval()
     acc = model.accuracy_fn(logits, y, val_mask)
     acc_history.append(acc)
-    loss_history.append(loss.item())
+
+    train_loss_history.append(loss.item())
+
+    val_loss = model.loss_fn(logits, y, val_mask)
+    val_loss_history.append(val_loss.item())
 
     # 早停判断
     if(acc > best_val_acc):
@@ -128,11 +137,11 @@ for epoch in range(epochs):
     else:
         cnt += 1
 
-    if(epoch < 20):
-        print(f"Epoch {epoch+1} | Loss: {loss.item():.4f} | Acc: {acc:.4f}")
-    elif (epoch + 1) % 5 == 0:
-        print(f"Epoch {epoch+1} | Loss: {loss.item():.4f} | Acc: {acc:.4f}")
+    # 打印训练日志
+    if(epoch < 20 or (epoch + 1) % 5 == 0 and epoch >= 20):
+        print(f"Epoch {epoch+1}\t| Train_Loss: {loss.item():.4f}\t| Val_Loss: {val_loss.item():.4f}\t| Val_acc: {acc:.4f}")
 
+# 用最好的模型结果来计算测试集
 model.load_state_dict(best_model_state)
 model.eval()
 with torch.no_grad():
@@ -140,28 +149,36 @@ with torch.no_grad():
     test_acc = model.accuracy_fn(logits, y, test_mask)
     print(f"Best_epoch = {best_epoch} | Final_Acc = {test_acc:.4f}")
 
+# 将结果写入文件
+with open('result/basic.txt', 'a', encoding='utf-8') as f:
+    f.write(f"Best_epoch = {best_epoch} | Final_Acc = {test_acc:.4f} \n")
+
+# 作图部分
 
 idx = [i for i in range(1,real_epochs+1)]
-
 fig, ax1 = plt.subplots(figsize=(14, 5))
 
 # ========== 左侧 Y 轴：Loss ==========
 color_loss = '#FF5733'
+color_val_loss = "#76F81F"
 ax1.set_xlabel('Epoch', fontsize=12)
 ax1.set_ylabel('Loss', color=color_loss, fontsize=12, fontweight='bold')
-loss_line1 = ax1.plot(idx, loss_history, color=color_loss, 
-                       linewidth=2, alpha=0.8, label='loss')
+loss_line1 = ax1.plot(idx, train_loss_history, color=color_loss, 
+                       linewidth=2, alpha=0.8, label='train_loss')
+loss_line2 = ax1.plot(idx, val_loss_history, color=color_val_loss, 
+                       linewidth=2, alpha=0.8, label='val_loss')
+
 ax1.grid(True, axis='y', alpha=0.3)
 
 # ========== 右侧 Y 轴：Accuracy ==========
 ax2 = ax1.twinx()
 color_acc = '#3A9BDC'
-ax2.set_ylabel('Accuracy', color=color_acc, fontsize=12, fontweight='bold')
+ax2.set_ylabel('Acc', color=color_acc, fontsize=12, fontweight='bold')
 acc_line2 = ax2.plot(idx, acc_history, color=color_acc, 
                      linestyle='--', linewidth=2, alpha=0.8, label='acc')
 
 # ========== 合并图例 ==========
-lines_1 = loss_line1
+lines_1 = loss_line1 + loss_line2
 lines_2 = acc_line2
 all_lines = lines_1 + lines_2
 labels = [l.get_label() for l in all_lines]
@@ -169,5 +186,5 @@ plt.legend(all_lines, labels, loc='upper left', framealpha=0.9)
 
 # 统一标题
 plt.tight_layout()
-plt.savefig('training_curves_dual_axis.png', dpi=300, bbox_inches='tight')
+# plt.savefig("pic/basic/1.png", dpi=300, bbox_inches='tight')
 plt.show()

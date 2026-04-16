@@ -60,9 +60,10 @@ class GCN(nn.Module):
         super().__init__()
         self.layer1 = GCN_layer(in_feature=in_feature , out_feature=hidden_feature, is_dropout=True,is_relu=True)
         self.layer2 = GCN_layer(in_feature=hidden_feature, out_feature=out_feature, is_dropout=False, is_relu=False)
+        self.proj1 = nn.Linear(in_features=in_feature, out_features=hidden_feature)
 
     def forward(self, x, adj): # 前向传播
-        x = self.layer1(x, adj)
+        x = self.layer1(x, adj) + self.proj1(x)
         x = self.layer2(x, adj)
         return x
     
@@ -83,7 +84,7 @@ class GCN(nn.Module):
 model = GCN(in_feature=num_features, hidden_feature=16, out_feature=num_classes)
 model.to(device)
 optimizer = optim.Adam(model.parameters(), lr = 0.01)
-epochs = 300
+epochs = 500
 
 # 绘图用
 acc_history = []
@@ -141,7 +142,7 @@ with torch.no_grad():
     print(f"Best_epoch = {best_epoch} | Final_Acc = {test_acc:.4f}")
 
 # 将结果写入文件
-with open('result/basic.txt', 'a', encoding='utf-8') as f:
+with open('result/res.txt', 'a', encoding='utf-8') as f:
     f.write(f"Best_epoch = {best_epoch} | Final_Acc = {test_acc:.4f} \n")
 
 # 作图部分
