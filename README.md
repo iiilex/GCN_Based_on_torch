@@ -2,12 +2,6 @@
 
 GCN_basic.py 2层标准模型
 
-GCN_basic_6.py 6层标准模型
-
-GCN_res.py 2层残差连接模型
-
-GCN_res_6.py 6层残差连接模型
-
 版本:
 
 python: 3.11.17
@@ -19,3 +13,9 @@ torch_geometric: 2.7.0
 注:由于原论文使用的MXNet太过古老，于是使用torch进行复现。尽可能还原了原版的计算过程。
 
 作图部分的代码为AI生成后自行修改
+
+食用方法:
+1. 准备尽可能相同的环境
+2. 在该根目录下打开powershell
+3. 输入 conda init powershell(假如已经init过了就不用，如果是第一次init记得重新打开)
+4. 输入 python [文件名字] -h 获取帮助，或者直接输入 python [文件名字] 以默认参数运行

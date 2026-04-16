@@ -1,0 +1,3 @@
+Best_epoch = 59 | Final_Acc = 0.7800 
+Best_epoch = 45 | Final_Acc = 0.7900 
+Best_epoch = 81 | Final_Acc = 0.7730 
