@@ -1,3 +1,98 @@
-Best_epoch = 59 | Final_Acc = 0.7800 
-Best_epoch = 45 | Final_Acc = 0.7900 
-Best_epoch = 81 | Final_Acc = 0.7730 
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 29 | Final_Acc = 0.8090 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 56 | Final_Acc = 0.8080 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 86 | Final_Acc = 0.7930 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 69 | Final_Acc = 0.8010 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Citeseer
+Best_epoch = 62 | Final_Acc = 0.6840 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Pubmed
+Best_epoch = 87 | Final_Acc = 0.7780 
+
+lr: 0.05
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Pubmed
+Best_epoch = 75 | Final_Acc = 0.7830 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 54 | Final_Acc = 0.8080 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 96 | Final_Acc = 0.7990 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 77 | Final_Acc = 0.8190 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 41 | Final_Acc = 0.7930 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 58 | Final_Acc = 0.8050 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 45 | Final_Acc = 0.7930 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 58 | Final_Acc = 0.7860 
+

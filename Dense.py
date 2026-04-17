@@ -17,6 +17,7 @@ parser.add_argument("--epochs", type=int, default=200, help="训练轮数")
 parser.add_argument("--dropout", type=float, default=0.5, help="Dropout率")
 parser.add_argument("--wd", type=float, default=5e-4, help="权重衰减")
 parser.add_argument("--patience", type=int, default=30, help="早停轮数")
+parser.add_argument("--dataset_type", type=int, default=0, help="0为Cora, 1为Citeseer, 2为Pubmed, 默认Cora")
 
 ### -------------------------------------------------------- ###
 
@@ -37,15 +38,17 @@ def get_adj(edge_index, num_nodes):
 
 #定义一个GCN层
 class GCN_layer(nn.Module):
-    def __init__(self, in_feature, out_feature, is_dropout, is_relu): # 初始化
+    def __init__(self, in_feature, out_feature, is_dropout, is_relu, dropout = 0.5): # 初始化
         super().__init__()
         self.weight = nn.Parameter(torch.zeros(in_feature, out_feature))
-        self.dropout = nn.Dropout(0.5) if is_dropout else nn.Identity()
+        self.dropout = nn.Dropout(dropout) if is_dropout else nn.Identity()
         self.is_relu = is_relu
         nn.init.xavier_uniform_(self.weight)
         
     def forward(self, x, adj):
-        y = adj @ x @ self.weight
+        # 实际上，你会惊人地发现，去掉 adj @ x 的聚合操作，就会退化成Dense模型
+        y = x @ self.weight
+        # y = adj @ x @ self.weight
         y = self.dropout(y)
         return F.relu(y) if self.is_relu else y
 
@@ -53,9 +56,9 @@ class GCN_layer(nn.Module):
 
 # 定义整个GCN模型
 class GCN(nn.Module):
-    def __init__(self, in_feature, hidden_feature, out_feature):
+    def __init__(self, in_feature, hidden_feature, out_feature, dropout):
         super().__init__()
-        self.layer1 = GCN_layer(in_feature=in_feature , out_feature=hidden_feature, is_dropout=True,is_relu=True)
+        self.layer1 = GCN_layer(in_feature=in_feature , out_feature=hidden_feature, is_dropout=True,is_relu=True, dropout=dropout)
         self.layer2 = GCN_layer(in_feature=hidden_feature, out_feature=out_feature, is_dropout=False, is_relu=False)
 
     def forward(self, x, adj): # 前向传播
@@ -109,9 +112,21 @@ def final_test(model, x, adj, y, test_mask, best_epoch):
 ### -------------------------------------------------------- ###
 
 # 写到文件中
-def write_to_file(best_epoch, test_acc):
-    with open('result/basic.txt', 'a', encoding='utf-8') as f:
-        f.write(f"Best_epoch = {best_epoch} | Final_Acc = {test_acc:.4f} \n")
+def write_to_file(best_epoch, test_acc, args):
+    with open('result/dense.txt', 'a', encoding='utf-8') as f:
+        f.write(f"lr: {args.lr}\n")
+        f.write(f"epochs: {args.epochs}\n")
+        f.write(f"dropout: {args.dropout}\n")
+        f.write(f"weight decay: {args.wd}\n")
+        f.write("dataset: ")
+        if(args.dataset_type == 0):
+            f.write("Cora")
+        elif(args.dataset_type == 1):
+            f.write("Citeseer")
+        else:
+            f.write("Pubmed")
+        f.write("\n")
+        f.write(f"Best_epoch = {best_epoch} | Final_Acc = {test_acc:.4f} \n\n")
 
 ### -------------------------------------------------------- ###
 
@@ -121,7 +136,7 @@ def draw(real_epochs, train_loss_history, val_loss_history, acc_history):
     idx = [i for i in range(1,real_epochs+1)]
     fig, ax1 = plt.subplots(figsize=(14, 5))
 
-    # ========== 左侧 Y 轴：Loss ==========
+    # loss
     color_loss = '#FF5733'
     color_val_loss = "#76F81F"
     ax1.set_xlabel('Epoch', fontsize=12)
@@ -133,14 +148,14 @@ def draw(real_epochs, train_loss_history, val_loss_history, acc_history):
 
     ax1.grid(True, axis='y', alpha=0.3)
 
-    # ========== 右侧 Y 轴：Accuracy ==========
+    # acc
     ax2 = ax1.twinx()
     color_acc = '#3A9BDC'
     ax2.set_ylabel('Acc', color=color_acc, fontsize=12, fontweight='bold')
     acc_line2 = ax2.plot(idx, acc_history, color=color_acc, 
                      linestyle='--', linewidth=2, alpha=0.8, label='acc')
 
-    # ========== 合并图例 ==========
+    # 合并
     lines_1 = loss_line1 + loss_line2
     lines_2 = acc_line2
     all_lines = lines_1 + lines_2
@@ -159,7 +174,13 @@ def main():
     args = parser.parse_args()
 
     # 读取数据集
-    dataset = Planetoid(root = "data", name = "Pubmed")
+    if args.dataset_type == 0:
+        dataset = Planetoid(root = "data", name = "Cora")
+    elif args.dataset_type == 1:
+        dataset = Planetoid(root = "data", name = "Citeseer")
+    elif args.dataset_type == 2:
+        dataset = Planetoid(root = "data", name = "Pubmed")
+    
     data = dataset[0]
 
     # 取出数据，并且把要计算的部分迁移到cuda上，加速计算
@@ -184,7 +205,7 @@ def main():
 
     # 训练前的各种定义
     model = GCN(in_feature=num_features, hidden_feature=args.hidden_features, 
-                out_feature=num_classes)
+                out_feature=num_classes, dropout=args.dropout)
     model.to(device)
     optimizer = optim.Adam(model.parameters(), lr = args.lr)
     epochs = args.epochs
@@ -231,7 +252,7 @@ def main():
 
     model.load_state_dict(best_model_state)
     test_acc = final_test(model, x, adj, y, test_mask, best_epoch)
-    write_to_file(best_epoch, test_acc)
+    write_to_file(best_epoch, test_acc, args)
     
     draw(real_epochs, train_loss_history, val_loss_history, acc_history)
 
