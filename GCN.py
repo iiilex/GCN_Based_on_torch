@@ -80,7 +80,7 @@ class GCN(nn.Module):
 ### -------------------------------------------------------- ###
 
 def train_for_one_epoch(model, optimizer, x, adj, y, train_mask, weight_decay): # 一次训练
-    model.train()
+    # model.train()
     optimizer.zero_grad()
     logits = model(x, adj)
     loss = model.loss_fn(logits, y, train_mask, weight_decay)
@@ -192,9 +192,9 @@ def main():
     num_nodes = data.num_nodes
     num_features = data.num_features
     num_classes = dataset.num_classes
-
-    # 增加自环
     edge_index = data.edge_index.to(device)
+    # 增加自环
+    
     idx = torch.arange(end = num_nodes, dtype = torch.long, device = device)
     self_index = torch.stack([idx, idx], dim = 0)
     edge_index = torch.cat([edge_index, self_index], dim = 1)
@@ -218,7 +218,6 @@ def main():
     best_epoch = 0
 
     # 绘图记录的list
-    # 绘图用
     acc_history = []
     train_loss_history = []
     val_loss_history = []

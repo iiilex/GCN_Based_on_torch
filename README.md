@@ -16,6 +16,6 @@ torch_geometric : 2.7.0
 
 食用方法:
 1. 准备尽可能相同的环境
-2. 在该根目录下打开powershell
+2. 在该根目录下打开powershell/terminal
 3. 输入 conda init powershell(假如已经init过了就不用，如果是第一次init记得重新打开)
 4. 输入 python [文件名字] -h 获取帮助，或者直接输入 python [文件名字] 以默认参数运行

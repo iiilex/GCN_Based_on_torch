@@ -1,0 +1,7 @@
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 26 | Final_Acc = 0.5350 
+

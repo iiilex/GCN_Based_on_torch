@@ -1,0 +1,42 @@
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 154 | Final_Acc = 0.6340 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 75 | Final_Acc = 0.4950 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 150 | Final_Acc = 0.7320 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 75 | Final_Acc = 0.3550 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 84 | Final_Acc = 0.4940 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 153 | Final_Acc = 0.6290 
+
