@@ -28,7 +28,8 @@ def get_data_by_hand(args):
     test_index = []
     with open(root + "test.index", "rb") as f:
         test_index.extend(int(line.strip()) for line in f)
-    test_index_sorted = sorted(test_index)
+    test_index = np.array(test_index)
+    test_index_sorted = np.sort(test_index)
     
     with open(root + "tx", "rb") as f:
         tx = pickle.load(f, encoding='latin1')
@@ -53,11 +54,11 @@ def get_data_by_hand(args):
         test_index_full = range(min(test_index), max(test_index)+1)
 
         tx_extended = sparse.lil_matrix((len(test_index_full), x.shape[1]))
-        tx_extended[test_index - min(test_index), :] = tx
+        tx_extended[test_index_sorted - min(test_index), :] = tx
         tx = tx_extended
 
         ty_extended = sparse.lil_matrix((len(test_index_full), y.shape[1]))
-        ty_extended[test_index - min(test_index), :] = ty
+        ty_extended[test_index_sorted - min(test_index), :] = ty
         ty = ty_extended
 
     # 得到一些数据集基本数据

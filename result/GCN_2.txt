@@ -54,3 +54,59 @@ weight decay: 0.0005
 dataset: Cora
 Best_epoch = 94 | Final_Acc = 0.8060 
 
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Citeseer
+Best_epoch = 7 | Final_Acc = 0.3140 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Citeseer
+Best_epoch = 11 | Final_Acc = 0.2950 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Citeseer
+Best_epoch = 12 | Final_Acc = 0.6900 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Citeseer
+Best_epoch = 20 | Final_Acc = 0.6800 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Citeseer
+Best_epoch = 10 | Final_Acc = 0.6810 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Pubmed
+Best_epoch = 128 | Final_Acc = 0.7860 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Citeseer
+Best_epoch = 10 | Final_Acc = 0.6880 
+
+lr: 0.01
+epochs: 200
+dropout: 0.5
+weight decay: 0.0005
+dataset: Pubmed
+Best_epoch = 196 | Final_Acc = 0.7880 
+
