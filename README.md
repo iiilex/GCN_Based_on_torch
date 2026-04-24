@@ -1,8 +1,8 @@
 基于论文 Semi-Supervised Classification with Graph Convolutional Networks 进行的复现实验。
 
-GCN.py : 2层标准模型
+共有四种模型:
 
-Dense.py : 2层MLP(baseline)
+2层GCN / 2层MLP / 8层GCN / 8层残差连接GCN
 
 版本:
 
