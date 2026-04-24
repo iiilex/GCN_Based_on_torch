@@ -47,7 +47,7 @@ def main():
     args = parser.parse_args()
     
     # 通过读取模块获得数据
-    device, x, y, train_mask, test_mask, val_mask, num_nodes, num_features, num_classes, edge_index = utils.get_data(args)
+    device, x, y, train_mask, test_mask, val_mask, num_nodes, num_features, num_classes, edge_index = utils.get_data_by_hand(args)
 
     # 计算聚合矩阵
     adj = utils.get_adj(edge_index, num_nodes, device)
@@ -60,10 +60,9 @@ def main():
     
     # 早停的参数
     patience = args.patience
-    best_val_acc = 0
+    best_val_loss = 1e8
     cnt = 0
     best_model_state = None
-    real_epochs = epochs
     best_epoch = 0
         
     # 训练过程的记录
@@ -83,14 +82,13 @@ def main():
         val_loss_history.append(val_loss.item())
 
         # 早停判断
-        if(val_acc > best_val_acc):
+        if(val_loss < best_val_loss):
             cnt = 0
-            best_val_acc = val_acc
+            best_val_loss = val_loss
             best_epoch = epoch+1
             best_model_state = copy.deepcopy(current_model.state_dict())
         elif(cnt >= patience):
             print("early stop!")
-            real_epochs = epoch+1
             break
         else:
             cnt += 1
@@ -102,7 +100,7 @@ def main():
     current_model.load_state_dict(best_model_state)
     test_acc = final_test(current_model, x, adj, y, test_mask, best_epoch)
     utils.write_to_file(best_epoch, test_acc, args)
-    utils.draw(real_epochs, train_loss_history, val_loss_history, train_acc_history, val_acc_history)
+    utils.draw(best_epoch, train_loss_history, val_loss_history, train_acc_history, val_acc_history)
     
 
 

@@ -1,7 +1,119 @@
 import model
 import torch
 from torch_geometric.datasets import Planetoid
+import numpy as np
+import pickle
+from scipy import sparse
+import networkx as nx
 import matplotlib.pyplot as plt
+
+def get_data_by_hand(args):
+    root = "" 
+    if args.dataset_type == 0:
+        root = "./data/Cora/raw/ind.cora."
+    elif args.dataset_type == 1:
+        root = "./data/Citeseer/raw/ind.citeseer."
+    elif args.dataset_type == 2:
+        root = "./data/Pubmed/raw/ind.pubmed."
+    
+    with open(root + "allx", "rb") as f:
+        allx = pickle.load(f, encoding='latin1')
+
+    with open(root + "ally", "rb") as f:
+        ally = pickle.load(f, encoding='latin1')
+
+    with open(root + "graph", "rb") as f:
+        graph = pickle.load(f, encoding='latin1')
+    
+    test_index = []
+    with open(root + "test.index", "rb") as f:
+        test_index.extend(int(line.strip()) for line in f)
+    test_index_sorted = sorted(test_index)
+    
+    with open(root + "tx", "rb") as f:
+        tx = pickle.load(f, encoding='latin1')
+
+    with open(root + "ty", "rb") as f:
+        ty = pickle.load(f, encoding='latin1')
+
+    with open(root + "x", "rb") as f:
+        x = pickle.load(f, encoding='latin1')
+
+    with open(root + "y", "rb") as f:
+        y = pickle.load(f, encoding='latin1')
+
+    # 由原论文，划分方法如下：
+    # 按顺序把 allx 和 tx 拼起来。
+    # allx的前(x的长度)个是训练集
+    # 接着的500个是验证集
+    # allx + tx 拼起来
+    # 剩下的是不参与训练或验证，只参加信息传递的
+
+    if(args.dataset_type == 1):
+        test_index_full = range(min(test_index), max(test_index)+1)
+
+        tx_extended = sparse.lil_matrix((len(test_index_full), x.shape[1]))
+        tx_extended[test_index - min(test_index), :] = tx
+        tx = tx_extended
+
+        ty_extended = sparse.lil_matrix((len(test_index_full), y.shape[1]))
+        ty_extended[test_index - min(test_index), :] = ty
+        ty = ty_extended
+
+    # 得到一些数据集基本数据
+    num_nodes = allx.shape[0] + tx.shape[0]
+    num_features = x.shape[1]
+    num_classes = y.shape[1]
+
+    # 训练、验证、测试集掩码
+    train_mask = torch.zeros(num_nodes, dtype=torch.bool)
+    val_mask = torch.zeros(num_nodes, dtype=torch.bool)
+    test_mask = torch.zeros(num_nodes, dtype = torch.bool)
+
+    train_mask[:x.shape[0]] = True
+    val_mask[x.shape[0]:x.shape[0]+500] = True
+    test_mask[test_index] = True
+
+    # 按照索引进行重排，防止图的关系错位了
+    features = sparse.vstack((allx, tx))
+    features = features.tolil()
+
+    labels = sparse.vstack((ally, ty))
+    labels = labels.tolil()
+
+    features[test_index, :] = features[test_index_sorted, :]
+    labels[test_index, :] = labels[test_index_sorted, :]
+
+    # 把读入的csr_matrix 转换为运算用的 coo_tensor
+    def csr_to_coo_tensor(t):
+        t = t.tocoo()
+        index = np.vstack((t.row, t.col))
+        index = torch.from_numpy(index).long()
+        value = torch.from_numpy(t.data).float()
+        shape = torch.Size(t.shape)
+        return torch.sparse_coo_tensor(index, value, shape)
+
+    features = csr_to_coo_tensor(features)
+    labels = csr_to_coo_tensor(labels)
+    labels = labels.to_dense()
+    labels = labels.argmax(dim = 1)
+
+    # 得到 edge_index
+    adj = nx.adjacency_matrix(nx.from_dict_of_lists(graph))
+    adj = adj.tocoo()
+    edge_index = np.vstack((adj.row, adj.col))
+    edge_index = torch.from_numpy(edge_index).long()
+
+    # 全部移动到gpu
+    device = torch.device("cuda")
+    train_mask = train_mask.to(device)
+    val_mask = val_mask.to(device)
+    test_mask = test_mask.to(device)
+    features = features.to(device)
+    labels = labels.to(device)
+    edge_index = edge_index.to(device)
+
+    return device, features, labels, train_mask, test_mask, val_mask, num_nodes, num_features, num_classes, edge_index
 
 # 获取数据集
 def get_data(args):
@@ -93,6 +205,10 @@ def write_to_file(best_epoch, test_acc, args):
 def draw(real_epochs, train_loss_history, val_loss_history, train_acc_history, val_acc_history):
 
     idx = [i for i in range(1,real_epochs+1)]
+    train_loss_history = train_loss_history[:real_epochs]
+    val_loss_history = val_loss_history[:real_epochs]
+    train_acc_history = train_acc_history[:real_epochs]
+    val_acc_history = val_acc_history[:real_epochs]
     fig, ax1 = plt.subplots(figsize=(14, 5))
 
     # loss

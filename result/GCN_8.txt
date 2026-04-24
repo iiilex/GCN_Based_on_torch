@@ -1,42 +1,126 @@
 lr: 0.01
 epochs: 200
-dropout: 0.5
+dropout: 0.2
 weight decay: 0.0005
 dataset: Cora
-Best_epoch = 154 | Final_Acc = 0.6340 
+Best_epoch = 177 | Final_Acc = 0.7430 
 
 lr: 0.01
 epochs: 200
-dropout: 0.5
+dropout: 0.2
 weight decay: 0.0005
 dataset: Cora
-Best_epoch = 75 | Final_Acc = 0.4950 
+Best_epoch = 64 | Final_Acc = 0.7300 
 
 lr: 0.01
 epochs: 200
-dropout: 0.5
+dropout: 0.2
 weight decay: 0.0005
 dataset: Cora
-Best_epoch = 150 | Final_Acc = 0.7320 
+Best_epoch = 130 | Final_Acc = 0.7510 
 
 lr: 0.01
 epochs: 200
-dropout: 0.5
+dropout: 0.2
 weight decay: 0.0005
 dataset: Cora
-Best_epoch = 75 | Final_Acc = 0.3550 
+Best_epoch = 135 | Final_Acc = 0.7430 
 
 lr: 0.01
 epochs: 200
-dropout: 0.5
+dropout: 0.2
 weight decay: 0.0005
 dataset: Cora
-Best_epoch = 84 | Final_Acc = 0.4940 
+Best_epoch = 185 | Final_Acc = 0.7220 
 
 lr: 0.01
 epochs: 200
-dropout: 0.5
+dropout: 0.2
+weight decay: 0.0005
+dataset: Citeseer
+Best_epoch = 134 | Final_Acc = 0.6270 
+
+lr: 0.01
+epochs: 200
+dropout: 0.2
+weight decay: 0.0005
+dataset: Citeseer
+Best_epoch = 104 | Final_Acc = 0.6320 
+
+lr: 0.01
+epochs: 200
+dropout: 0.2
+weight decay: 0.0005
+dataset: Citeseer
+Best_epoch = 170 | Final_Acc = 0.6300 
+
+lr: 0.01
+epochs: 200
+dropout: 0.2
+weight decay: 0.0005
+dataset: Citeseer
+Best_epoch = 58 | Final_Acc = 0.6280 
+
+lr: 0.01
+epochs: 200
+dropout: 0.2
+weight decay: 0.0005
+dataset: Citeseer
+Best_epoch = 73 | Final_Acc = 0.6020 
+
+lr: 0.01
+epochs: 200
+dropout: 0.2
+weight decay: 0.0005
+dataset: Pubmed
+Best_epoch = 199 | Final_Acc = 0.7400 
+
+lr: 0.01
+epochs: 200
+dropout: 0.2
+weight decay: 0.0005
+dataset: Pubmed
+Best_epoch = 51 | Final_Acc = 0.6960 
+
+lr: 0.01
+epochs: 200
+dropout: 0.2
+weight decay: 0.0005
+dataset: Pubmed
+Best_epoch = 57 | Final_Acc = 0.7510 
+
+lr: 0.01
+epochs: 200
+dropout: 0.2
+weight decay: 0.0005
+dataset: Pubmed
+Best_epoch = 38 | Final_Acc = 0.7680 
+
+lr: 0.01
+epochs: 200
+dropout: 0.2
+weight decay: 0.0005
+dataset: Pubmed
+Best_epoch = 69 | Final_Acc = 0.7530 
+
+lr: 0.01
+epochs: 200
+dropout: 0.2
 weight decay: 0.0005
 dataset: Cora
-Best_epoch = 153 | Final_Acc = 0.6290 
+Best_epoch = 25 | Final_Acc = 0.4180 
+
+lr: 0.01
+epochs: 200
+dropout: 0.2
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 26 | Final_Acc = 0.3830 
+
+lr: 0.01
+epochs: 200
+dropout: 0.2
+weight decay: 0.0005
+dataset: Cora
+Best_epoch = 23 | Final_Acc = 0.5320 
 
